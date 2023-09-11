@@ -1,12 +1,45 @@
-name: dockerhub-ci
+name: build
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'build/**'
+      - '.github/workflows/**'
+    branches:
+      - master
+  schedule:
+    - cron: '33 1 * * *'
 
 jobs:
-  latest:
+  #
+  # Job: cancel
+  #
+  cancel:
+    name: "Cancel previous workflow runs"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          workflow_id: build.yaml
+          access_token: ${{ github.token }}
+
+  #
+  # Job: build
+  #
+  build:
+    needs:
+      - cancel
     runs-on: ubuntu-latest
     steps:
+      - name: Get latest tagged version of keepalived
+        id: latest_tag
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: acassen/keepalived
+          prefix: v
+
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -16,11 +49,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker Hub
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PAT }}
 
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -28,181 +62,8 @@ jobs:
           context: ./build
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: nser77/docker-keepalived:latest
+          tags: ghcr.io/${{ github.repository_owner }}/docker-keepalived:${{ steps.latest_tag.outputs.tag }}
+          provenance: false # Improve image compatability, see https://github.com/containers/skopeo/issues/1874
           build-args: |
            __ENABLE_JSON__=1
-  latest_snmp:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./build
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: nser77/docker-keepalived:latest-snmp
-          build-args: |
-           __ENABLE_JSON__=1
-           __ENABLE_SNMP_VRRP__=1
-  vrrp_latest:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./build
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: nser77/docker-keepalived:vrrp-latest
-          build-args: |
-           __ENABLE_JSON__=1
-           __DISABLE_LVS__=1
-  vrrp_bfd_latest:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./build
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: nser77/docker-keepalived:vrrp-bfd-latest
-          build-args: |
-           __ENABLE_JSON__=1
-           __DISABLE_LVS__=1
-           __ENABLE_BFD__=1
-  vrrp_latest_snmp:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./build
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: nser77/docker-keepalived:vrrp-latest-snmp
-          build-args: |
-           __ENABLE_JSON__=1
-           __DISABLE_LVS__=1
-           __ENABLE_SNMP_VRRP__=1
-  vrrp_latest_minimal:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./build
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: nser77/docker-keepalived:vrrp-latest-minimal
-          build-args: |
-           __ENABLE_JSON__=1
-           __DISABLE_LVS__=1
-           __DISABLE_VRRP_AUTH__=1
-           __DISABLE_ROUTES__=1
-           __DISABLE_LINKBEAT__=1
-  lvs_latest:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./build
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: nser77/docker-keepalived:lvs-latest
-          build-args: |
-           __ENABLE_REGEX__=1
-           __ENABLE_REGEX_TIMERS__=1
-           __DISABLE_LVS__=0
-           __DISABLE_VRRP__=1
+           GIT_KVER=${{ steps.latest_tag.outputs.tag }}
