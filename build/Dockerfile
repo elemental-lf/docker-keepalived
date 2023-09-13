@@ -48,7 +48,7 @@ ARG CJSON=/usr/src/configure.json
 ADD ./configure/configure.py $CPY
 ADD ./configure/configure.json $CJSON
 
-WORKDIR $WDIR
+WORKDIR /
 
 RUN \
 \
@@ -79,6 +79,8 @@ if [[ $__ENABLE_SNMP_VRRP__ -eq 1 ]]; then apk --no-cache add net-snmp-dev;     
 if [[ $__ENABLE_REGEX__     -eq 1 ]]; then apk --no-cache add pcre2 pcre2-dev;         fi; \
 \
 git clone -b $GIT_KVER https://github.com/acassen/keepalived.git $WDIR; \
+\
+cd $WDIR; \
 \
 mv $CPY $CJSON $WDIR; \
 \
@@ -145,7 +147,7 @@ if [[ $__DISABLE_NFTABLES__ -eq 0 ]]; then apk --no-cache del libmnl-dev libnftn
 if [[ $__ENABLE_SNMP_VRRP__ -eq 1 ]]; then apk --no-cache del net-snmp-dev;            fi; \
 if [[ $__ENABLE_REGEX__     -eq 1 ]]; then apk --no-cache del pcre2-dev;               fi; \
 \
-rm -rf $WDIR/*; \
+rm -rf $WDIR; \
 \
 addgroup -S keepalived_script && adduser -D -S -G keepalived_script keepalived_script
 
