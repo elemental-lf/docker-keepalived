@@ -52,6 +52,8 @@ WORKDIR $WDIR
 
 RUN \
 \
+set -e; \
+\
 apk --no-cache add \
         python3 \
         git \
