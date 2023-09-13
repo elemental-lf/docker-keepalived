@@ -64,7 +64,9 @@ apk --no-cache add \
         openssl \
         openssl-dev \
         autoconf \
-        automake; \
+        automake \
+        libnfnetlink \
+        libnfnetlink-dev; \
 \
 if [[ $__ENABLE_MAGIC__     -eq 1 ]]; then apk --no-cache add file file-dev;           fi; \
 if [[ $__ENABLE_DBUS__      -eq 1 ]]; then apk --no-cache add glib glib-dev;           fi; \
@@ -130,7 +132,8 @@ apk --no-cache del \
         musl-dev \
         openssl-dev \
         autoconf \
-        automake; \
+        automake \
+        libnfnetlink-dev; \
 \
 if [[ $__ENABLE_MAGIC__     -eq 1 ]]; then apk --no-cache del file-dev;                fi; \
 if [[ $__ENABLE_DBUS__      -eq 1 ]]; then apk --no-cache del glib-dev;                fi; \
