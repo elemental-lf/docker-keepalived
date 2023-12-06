@@ -47,6 +47,7 @@ ARG CJSON=/usr/src/configure.json
 
 ADD ./configure/configure.py $CPY
 ADD ./configure/configure.json $CJSON
+ADD ./keepalived-wrapper /usr/local/bin/keepalived-wrapper
 
 WORKDIR /
 
@@ -89,7 +90,7 @@ if [[ ! $MAP_FROM == "local" ]]; then wget $MAP_FROM -O ./configure/configure.js
 \
 ./autogen.sh; \
 \
-chmod +x ./configure.py; \
+chmod +x ./configure.py /usr/local/bin/keepalived-wrapper; \
 \
 ./configure.py \
         --enable-dbus              $__ENABLE_DBUS__ \
@@ -152,4 +153,4 @@ rm -rf $WDIR; \
 \
 addgroup -S keepalived_script && adduser -D -S -G keepalived_script keepalived_script
 
-ENTRYPOINT ["/usr/sbin/keepalived","--dont-fork","--log-console", "-f", "/etc/keepalived/keepalived.conf"]
+ENTRYPOINT ["/usr/local/bin/keepalived-wrapper","--dont-fork","--log-console", "-f", "/etc/keepalived/keepalived.conf"]

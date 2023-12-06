@@ -1,0 +1,5 @@
+#!/bin/sh
+# The pid file might still be around if keepalived was shutdown improperly
+# for example after a crash.
+/bin/rm -f /run/keepalived.pid
+exec /usr/sbin/keepalived "$@"
