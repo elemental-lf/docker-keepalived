@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.19
 
 LABEL author="Alexandre Cassen <acassen@gmail.com>"
 LABEL project="https://github.com/acassen/keepalived"
