@@ -70,7 +70,9 @@ apk --no-cache add \
         automake \
         libnfnetlink \
         libnfnetlink-dev \
-        curl; \
+        curl \
+        libip4tc \
+        libip6tc; \
 \
 if [[ $__ENABLE_MAGIC__     -eq 1 ]]; then apk --no-cache add file file-dev;           fi; \
 if [[ $__ENABLE_DBUS__      -eq 1 ]]; then apk --no-cache add glib glib-dev;           fi; \
